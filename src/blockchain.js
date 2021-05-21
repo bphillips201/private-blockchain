@@ -37,6 +37,7 @@ class Blockchain {
       let block = new BlockClass.Block({ data: "Genesis Block" });
       await this._addBlock(block);
     }
+    await this._addBlock(new BlockClass.Block({data: "Test block"}));
   }
 
   /**
@@ -72,7 +73,11 @@ class Blockchain {
         block.hash = SHA256(JSON.stringify(block)).toString();
         self.chain.push(block);
         self.height = self.chain.length - 1; 
+        
         console.log(self);
+        
+        self.validateChain()
+
         resolve(self)
       } catch (e) {
         reject(e);
@@ -170,7 +175,27 @@ class Blockchain {
   validateChain() {
     let self = this;
     let errorLog = [];
-    return new Promise(async (resolve, reject) => {});
+    return new Promise(async (resolve, reject) => {
+      for (let i = 0; i < self.chain.length; i++) {
+        const block = self.chain[i];
+
+        if (block.height > 0) {
+          if (block.previousBlockHash !== self.chain[i - 1].hash) {
+            errorLog.push(`Invalid Block ${block.hash}`);
+          }
+        }
+
+        block.validate().then(isValid => {
+          if (!isValid) {
+            errorLog.push[`Block ${block.hash} has been tampered with.`]
+          }
+        });
+      }
+
+      if (errorLog.length > 0) reject(errorLog)
+
+      resolve("Blockchain is valid");
+    });
   }
 }
 
