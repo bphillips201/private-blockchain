@@ -44,10 +44,10 @@ class Block {
       // Comparing if the hashes changed
       if (currentHash !== blockHash) {
         // Returning the Block is not valid
-        reject("The Block is not valid");
+        resolve(false);
       }
       // Returning the Block is valid
-      resolve("The Block is valid");
+      resolve(true);
     });
   }
 
@@ -70,6 +70,8 @@ class Block {
     // Resolve with the data if the object isn't the Genesis block
     if (data !== "Genesis Block") {
       return data;
+    } else {
+      throw Error("No data for Genesis Block");
     }
   }
 }

@@ -62,7 +62,22 @@ class Blockchain {
    */
   _addBlock(block) {
     let self = this;
-    return new Promise(async (resolve, reject) => {});
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (self.chain.length > 0) {
+          block.previousBlockHash = self.chain[self.chain.length - 1].hash;
+          block.height = self.chain.length;
+        }
+        block.time = new Date().getTime().toString().slice(0,-3);
+        block.hash = SHA256(JSON.stringify(block)).toString();
+        self.chain.push(block);
+        self.height = self.chain.length - 1; 
+        console.log(self);
+        resolve(self)
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 
   /**
@@ -107,7 +122,15 @@ class Blockchain {
    */
   getBlockByHash(hash) {
     let self = this;
-    return new Promise((resolve, reject) => {});
+    return new Promise((resolve, reject) => {
+      const block = self.chain.filter(block => block.hash === hash)[0];
+
+      if (block) {
+        resolve(block)
+      } else {
+        resolve("No Block found");
+      }
+    });
   }
 
   /**
