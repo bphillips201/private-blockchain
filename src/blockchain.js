@@ -115,20 +115,23 @@ class Blockchain {
     return new Promise(async (resolve, reject) => {
       const verifiedTime = parseInt(message.split(':')[1]);
       const currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
+      
+      // Reject if invalid blockchain
+      const errors = await self.validateChain();
+      if (errors.length > 0) reject(errors);
 
-      if ((currentTime - verifiedTime) < 300) {
-        const isVerified = bitcoinMessage.verify(message, address, signature);
-        if (isVerified) {
-          const data = { address, star }
-          const block = new BlockClass.Block({ data })
-          await self._addBlock(block);
-          resolve(block);
-        } else {
-          reject("Invalid signature.");
-        }
-      } else {
-        reject("Invalid timestamp");
-      }
+      // Reject if greater than 5 mins between verifications
+      if ((currentTime - verifiedTime) > 300) reject("Invalid timestamp")
+        
+      // Reject if invalid signature
+      const isVerified = bitcoinMessage.verify(message, address, signature);
+      if (!isVerified) reject("Invalid signature");
+      
+      // Add block to chain and resolve
+      const data = { address, star }
+      const block = new BlockClass.Block({ data })
+      await self._addBlock(block);
+      resolve(block);
     });
   }
 
@@ -206,16 +209,13 @@ class Blockchain {
           }
         }
 
-        block.validate().then(isValid => {
-          if (!isValid) {
-            errorLog.push(`Block ${block.hash} has been tampered with.`);
-          }
-        });
+        const isValid = await block.validate();
+        if (!isValid) {
+          errorLog.push(`Block ${block.hash} has been tampered with.`);
+        }
       }
 
-      errorLog.length > 0 
-        ? reject(errorLog)
-        : resolve("Blockchain is valid");
+      resolve(errorLog);
     });
   }
 }
