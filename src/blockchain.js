@@ -37,7 +37,6 @@ class Blockchain {
       let block = new BlockClass.Block({ data: "Genesis Block" });
       await this._addBlock(block);
     }
-    await this._addBlock(new BlockClass.Block({data: "Test block"}));
   }
 
   /**
@@ -76,9 +75,8 @@ class Blockchain {
         
         console.log(self);
         
-        self.validateChain()
 
-        resolve(self)
+        resolve(block)
       } catch (e) {
         reject(e);
       }
@@ -94,7 +92,9 @@ class Blockchain {
    * @param {*} address
    */
   requestMessageOwnershipVerification(address) {
-    return new Promise((resolve) => {});
+    return new Promise((resolve) => {
+      resolve(`${address}:${new Date().getTime().toString().slice(0,-3)}:starRegistry`);
+    });
   }
 
   /**
@@ -116,7 +116,23 @@ class Blockchain {
    */
   submitStar(address, message, signature, star) {
     let self = this;
-    return new Promise(async (resolve, reject) => {});
+    return new Promise(async (resolve, reject) => {
+      const verifiedTime = parseInt(message.split(':')[1]);
+      const currentTime = parseInt(new Date().getTime().toString().slice(0, -3));
+
+      if ((currentTime - verifiedTime) < 300) {
+        const isVerified = bitcoinMessage.verify(message, address, signature);
+        if (isVerified) {
+          const block = new BlockClass.Block(star);
+          await self._addBlock(block);
+          resolve(block);
+        } else {
+          reject("Invalid signature.");
+        }
+      } else {
+        reject("Invalid timestamp");
+      }
+    });
   }
 
   /**
