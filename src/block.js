@@ -70,11 +70,11 @@ class Block {
     // Parse the data to an object to be retrieve.
     const { data } = JSON.parse(decodedBlockData);
     // Resolve with the data if the object isn't the Genesis block
-    if (data !== "Genesis Block") {
-      return data;
-    } else {
+    if (data === "Genesis Block") {
       return {};
     }
+
+    return data;
   }
 }
 
