@@ -73,7 +73,7 @@ class Block {
     if (data !== "Genesis Block") {
       return data;
     } else {
-      return "No data on Genesis Block";
+      return {};
     }
   }
 }

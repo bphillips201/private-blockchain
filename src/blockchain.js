@@ -72,10 +72,6 @@ class Blockchain {
         block.hash = SHA256(JSON.stringify(block)).toString();
         self.chain.push(block);
         self.height = self.chain.length - 1; 
-        
-        console.log(self);
-        
-
         resolve(block)
       } catch (e) {
         reject(e);
@@ -123,7 +119,8 @@ class Blockchain {
       if ((currentTime - verifiedTime) < 300) {
         const isVerified = bitcoinMessage.verify(message, address, signature);
         if (isVerified) {
-          const block = new BlockClass.Block(star);
+          const data = { address, star }
+          const block = new BlockClass.Block({ data })
           await self._addBlock(block);
           resolve(block);
         } else {
@@ -176,10 +173,18 @@ class Blockchain {
    * Remember the star should be returned decoded.
    * @param {*} address
    */
-  getStarsByWalletAddress(address) {
+  getStarsByWalletAddress(addr) {
     let self = this;
     let stars = [];
-    return new Promise((resolve, reject) => {});
+    return new Promise((resolve, reject) => {
+      for (const block of self.chain) {
+        const { address, star } = block.getBData();
+        if (address === addr) {
+          stars.push({ address, star });
+        }
+      }
+      resolve(stars);
+    });
   }
 
   /**
@@ -203,14 +208,14 @@ class Blockchain {
 
         block.validate().then(isValid => {
           if (!isValid) {
-            errorLog.push[`Block ${block.hash} has been tampered with.`]
+            errorLog.push(`Block ${block.hash} has been tampered with.`);
           }
         });
       }
 
-      if (errorLog.length > 0) reject(errorLog)
-
-      resolve("Blockchain is valid");
+      errorLog.length > 0 
+        ? reject(errorLog)
+        : resolve("Blockchain is valid");
     });
   }
 }
